@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 MAIN YUK! (jangan takut)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #0a0a0a;
+            font-family: 'Arial', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            color: #0f0;
+            transition: all 0.3s;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: #111;
+            border: 2px solid #0f0;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 0 30px rgba(0,255,0,0.3);
+            position: relative;
+            z-index: 2;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #0f0;
+            text-shadow: 0 0 15px #0f0;
+        }
+        
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
+        }
+        
+        .menu-item {
+            background: #1a1a1a;
+            border: 2px solid #0f0;
+            border-radius: 15px;
+            padding: 25px 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 18px;
+            font-weight: bold;
+            color: #0f0;
+            text-decoration: none;
+        }
+        
+        .menu-item:hover {
+            background: #0f0;
+            color: #000;
+            transform: scale(1.05);
+            box-shadow: 0 0 30px #0f0;
+        }
+        
+        .game-area {
+            background: #1a1a1a;
+            border: 2px solid #0f0;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            min-height: 200px;
+        }
+        
+        .question {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #0f0;
+        }
+        
+        .options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .option {
+            background: #2a2a2a;
+            border: 2px solid #0f0;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .option:hover {
+            background: #0f0;
+            color: #000;
+        }
+        
+        .result {
+            font-size: 18px;
+            margin-top: 20px;
+            padding: 15px;
+            border-top: 2px solid #0f0;
+        }
+        
+        #jumpscare {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 9999;
+            display: none;
+            filter: glitch-effect;
+        }
+        
+        #jumpscare.active {
+            display: block;
+            animation: glitch 0.3s infinite;
+        }
+        
+        @keyframes glitch {
+            0% { transform: translate(0); filter: hue-rotate(0deg); }
+            20% { transform: translate(-5px, 5px); filter: hue-rotate(90deg); }
+            40% { transform: translate(5px, -5px); filter: hue-rotate(180deg); }
+            60% { transform: translate(-5px, -5px); filter: hue-rotate(270deg); }
+            80% { transform: translate(5px, 5px); filter: hue-rotate(360deg); }
+            100% { transform: translate(0); filter: hue-rotate(0deg); }
+        }
+        
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            z-index: 9998;
+            display: none;
+        }
+        
+        .overlay.active {
+            display: block;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .info-text {
+            color: #666;
+            font-size: 14px;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Jumpscare elements -->
+    <div class="overlay" id="overlay"></div>
+    <img src="https://i.imgur.com/7ZQ4Q0U.gif" id="jumpscare" alt="SCARY">
+    
+    <!-- Main container -->
+    <div class="container" id="mainContainer">
+        <h1>🎮 SELAMAT DATANG! 🎮</h1>
+        <div style="text-align: center; color: #666;">Pilih game favorit kamu:</div>
+        
+        <!-- MENU UTAMA -->
+        <div class="menu-grid" id="mainMenu">
+            <div class="menu-item" onclick="startGame('game1')">🎲 TEBAK ANGKA</div>
+            <div class="menu-item" onclick="startGame('game2')">❓ QUIZ SERU</div>
+            <div class="menu-item" onclick="startGame('game3')">🎯 SUIT JAWA</div>
+            <div class="menu-item" onclick="startGame('game4')">💰 HOKI ANGKA</div>
+            <div class="menu-item" onclick="startGame('game5')">🔮 RAMALAN</div>
+            <div class="menu-item" onclick="startGame('game6')">🎰 JACKPOT</div>
+        </div>
+        
+        <!-- GAME AREA (awalnya hidden) -->
+        <div id="gameArea" class="game-area hidden">
+            <div id="gameContent"></div>
+            <div id="gameResult" class="result"></div>
+        </div>
+        
+        <div class="info-text">✨ 100.000+ orang sudah main! ✨</div>
+    </div>
+
+    <script>
+        // ==================== KONFIGURASI ====================
+        const jumpscare = document.getElementById('jumpscare');
+        const overlay = document.getElementById('overlay');
+        const mainContainer = document.getElementById('mainContainer');
+        const mainMenu = document.getElementById('mainMenu');
+        const gameArea = document.getElementById('gameArea');
+        const gameContent = document.getElementById('gameContent');
+        const gameResult = document.getElementById('gameResult');
+        
+        let currentGame = '';
+        let clickCount = 0;
+        let timer = null;
+        
+        // ==================== FUNGSI JUMPSCARE ====================
+        function triggerJumpscare() {
+            // Sembunyikan menu dan game
+            mainMenu.classList.add('hidden');
+            gameArea.classList.add('hidden');
+            
+            // Tampilkan jumpscare
+            jumpscare.classList.add('active');
+            overlay.classList.add('active');
+            
+            // Mainkan suara (otomatis)
+            const audio = new Audio('https://www.myinstants.com/media/sounds/scream_5.mp3');
+            audio.play().catch(e => console.log('Gagal main suara'));
+            
+            // Reset setelah 3 detik
+            setTimeout(() => {
+                jumpscare.classList.remove('active');
+                overlay.classList.remove('active');
+                mainMenu.classList.remove('hidden');
+                
+                // Reset counter
+                clickCount = 0;
+            }, 3000);
+        }
+        
+        // ==================== FUNGSI GAME ====================
+        function startGame(game) {
+            currentGame = game;
+            mainMenu.classList.add('hidden');
+            gameArea.classList.remove('hidden');
+            clickCount = 0;
+            
+            let content = '';
+            
+            switch(game) {
+                case 'game1': // TEBAK ANGKA
+                    const target = Math.floor(Math.random() * 10) + 1;
+                    sessionStorage.setItem('targetNumber', target);
+                    content = `
+                        <div class="question">🔢 TEBAK ANGKA 1-10</div>
+                        <div class="options">
+                            ${[...Array(5)].map((_, i) => `<div class="option" onclick="checkGuess(${i+1})">${i+1}</div>`).join('')}
+                        </div>
+                        <div class="options">
+                            ${[...Array(5)].map((_, i) => `<div class="option" onclick="checkGuess(${i+6})">${i+6}</div>`).join('')}
+                        </div>
+                    `;
+                    break;
+                    
+                case 'game2': // QUIZ SERU
+                    content = `
+                        <div class="question">❓ IBU KOTA INDONESIA?</div>
+                        <div class="options">
+                            <div class="option" onclick="checkQuiz('salah')">Surabaya</div>
+                            <div class="option" onclick="checkQuiz('salah')">Bandung</div>
+                            <div class="option" onclick="checkQuiz('salah')">Medan</div>
+                            <div class="option" onclick="checkQuiz('benar')">Jakarta</div>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'game3': // SUIT JAWA
+                    content = `
+                        <div class="question">✊✌️✋ PILIH:</div>
+                        <div class="options">
+                            <div class="option" onclick="checkSuit('batu')">✊ BATU</div>
+                            <div class="option" onclick="checkSuit('gunting')">✌️ GUNTING</div>
+                            <div class="option" onclick="checkSuit('kertas')">✋ KERTAS</div>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'game4': // HOKI ANGKA
+                    content = `
+                        <div class="question">🎰 KLIK ANGKA KEBERUNTUNGANMU:</div>
+                        <div class="options">
+                            ${[...Array(6)].map((_, i) => `<div class="option" onclick="checkHoki(${i+1})">${i+1}</div>`).join('')}
+                        </div>
+                    `;
+                    break;
+                    
+                case 'game5': // RAMALAN
+                    content = `
+                        <div class="question">🔮 RAMALAN HARI INI</div>
+                        <div class="options">
+                            <div class="option" onclick="checkRamal()">LIHAT RAMALAN</div>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'game6': // JACKPOT
+                    content = `
+                        <div class="question">💰 JACKPOT 1 JUTA!</div>
+                        <div class="options">
+                            <div class="option" onclick="checkJackpot()">AMBIL HADIAH</div>
+                        </div>
+                    `;
+                    break;
+            }
+            
+            gameContent.innerHTML = content;
+            gameResult.innerHTML = '';
+        }
+        
+        // ==================== FUNGSI CEK GAME ====================
+        function checkGuess(guess) {
+            clickCount++;
+            const target = sessionStorage.getItem('targetNumber');
+            
+            if (clickCount >= 3) {
+                triggerJumpscare();
+                return;
+            }
+            
+            if (guess == target) {
+                gameResult.innerHTML = '✅ BENAR! LANJUTKAN...';
+                setTimeout(() => startGame(currentGame), 1000);
+            } else {
+                gameResult.innerHTML = `❌ SALAH! (${clickCount}/3)`;
+            }
+        }
+        
+        function checkQuiz(answer) {
+            clickCount++;
+            if (clickCount >= 3) {
+                triggerJumpscare();
+                return;
+            }
+            
+            if (answer === 'benar') {
+                gameResult.innerHTML = '✅ PINTAR! COBA LAGI?';
+                setTimeout(() => startGame(currentGame), 1000);
+            } else {
+                gameResult.innerHTML = `❌ SALAH! (${clickCount}/3)`;
+            }
+        }
+        
+        function checkSuit(pilihan) {
+            clickCount++;
+            if (clickCount >= 3) {
+                triggerJumpscare();
+                return;
+            }
+            
+            const kom = ['batu', 'gunting', 'kertas'][Math.floor(Math.random() * 3)];
+            
+            if (pilihan === kom) {
+                gameResult.innerHTML = `🤖 SERI! (${clickCount}/3)`;
+            } else if (
+                (pilihan === 'batu' && kom === 'gunting') ||
+                (pilihan === 'gunting' && kom === 'kertas') ||
+                (pilihan === 'kertas' && kom === 'batu')
+            ) {
+                gameResult.innerHTML = `✅ MENANG! TAPI COBA LAGI... (${clickCount}/3)`;
+                setTimeout(() => startGame(currentGame), 1000);
+            } else {
+                gameResult.innerHTML = `❌ KALAH! (${clickCount}/3)`;
+            }
+        }
+        
+        function checkHoki(angka) {
+            clickCount++;
+            if (clickCount >= 3) {
+                triggerJumpscare();
+                return;
+            }
+            
+            if (angka === 7) {
+                gameResult.innerHTML = '🎉 ANGKA HOKI! DAPET LAGI?';
+                setTimeout(() => startGame(currentGame), 1000);
+            } else {
+                gameResult.innerHTML = `😢 COBA ANGKA LAIN (${clickCount}/3)`;
+            }
+        }
+        
+        function checkRamal() {
+            clickCount++;
+            if (clickCount >= 3) {
+                triggerJumpscare();
+                return;
+            }
+            
+            const ramal = ['HOKI', 'SIAL', 'BIASA', 'HATI-HATI', 'BERUNTUNG'][Math.floor(Math.random() * 5)];
+            gameResult.innerHTML = `🔮 RAMALAN: ${ramal} (${clickCount}/3)`;
+            
+            if (clickCount === 2) {
+                setTimeout(() => startGame(currentGame), 1500);
+            }
+        }
+        
+        function checkJackpot() {
+            clickCount++;
+            if (clickCount >= 3) {
+                triggerJumpscare();
+                return;
+            }
+            
+            gameResult.innerHTML = `💰 MAAF BELUM HOKI (${clickCount}/3)`;
+        }
+        
+        // ==================== RESET GAME ====================
+        function backToMenu() {
+            mainMenu.classList.remove('hidden');
+            gameArea.classList.add('hidden');
+            clickCount = 0;
+        }
+        
+        // ==================== TOMBOL BACK (tambahin manual) ====================
+        // (opsional, bisa ditambahin di gameArea)
+    </script>
+</body>
+  </html>
